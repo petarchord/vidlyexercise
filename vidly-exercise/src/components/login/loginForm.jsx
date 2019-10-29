@@ -1,58 +1,62 @@
 import React, { Component } from "react";
+import Joi from "@hapi/joi";
+import Input from "../common/input";
+import Form from "../common/form";
 
-class LoginForm extends Component {
+class LoginForm extends Form {
   email = React.createRef();
   state = {
-    account: {
+    data: {
       email: "",
       password: ""
-    }
+    },
+    errors: {}
   };
 
-  handleSubmit = e => {
-    e.preventDefault();
+  schema = Joi.object({
+    email: Joi.string()
+      .required()
+      .label("Email"),
+    password: Joi.string()
+      .required()
+      .label("Password")
+  });
 
-    console.log("ref:", this.email.current);
+  validate = () => {
+    const result = this.schema.validate(this.state.data, { abortEarly: false });
+    console.log("result", result);
+    if (!result.error) return null;
+
+    const errors = {};
+
+    for (let item of result.error.details) errors[item.path[0]] = item.message;
+    return errors;
   };
 
-  handleChange = e => {
-    console.log("e", e.currentTarget.name);
-    const account = { ...this.state.account };
-    account[e.currentTarget.name] = e.currentTarget.value;
-    this.setState({ account });
+  doSubmit = () => {
+    console.log("submitted");
   };
 
   render() {
     return (
       <div className="login_form_holder">
         <form onSubmit={this.handleSubmit}>
-          <div className="form-group">
-            <label>Email address</label>
-            <input
-              onChange={this.handleChange}
-              ref={this.email}
-              type="email"
-              className="form-control"
-              id="emailAddress"
-              placeholder="Enter email"
-              name="email"
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              onChange={this.handleChange}
-              type="password"
-              className="form-control"
-              id="password"
-              placeholder="Password"
-              name="password"
-            />
-          </div>
+          {this.renderInput(
+            "Email address",
+            "email",
+            "email",
+            "Enter email",
+            "email"
+          )}
+          {this.renderInput(
+            "Password",
+            "password",
+            "password",
+            "Password",
+            "password"
+          )}
 
-          <button type="submit" className="btn btn-primary">
-            Log in
-          </button>
+          {this.renderButton("Log in")}
         </form>
       </div>
     );
